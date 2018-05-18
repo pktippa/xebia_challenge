@@ -3,6 +3,11 @@ function submitSearch(){
     var genre_Val = document.getElementById('genre').value;
     var book_title_Val = document.getElementById('book_title').value;
     var query = '?';
+    var token = sessionStorage.token;
+    if (!token) {
+      document.getElementById('search_login_div').hidden = false;
+      return alert('Please login first to perform the search');
+    }
     if(author_Val) {
       query += '&author=' + author_Val
     }

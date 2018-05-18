@@ -18,11 +18,21 @@
     <div>
       <h4>Signup</h4>
       <form id="signup">
-        Name: <input type="text" id="sign_name"><br>
+        Full Name: <input type="text" id="full_name"><br>
         Username: <input type="text" id="signup_usename"><br>
         Password: <input type="password" id="signup_password"><br>
+        Role:
+        <select id="sign_role" name="sign_role">
+          <option selected="selected" value="Reader">Reader</option>
+          <option value="Editor">Editor</option>
+        </select><br>
         <input type="button" value="SignUp" id="SignUpBtn" onclick="signup()">
       </form>
+    </div>
+    <br>
+    <br>
+    <div id="search_div" hidden="true">
+      <a id="search_anchor" href="./search.html">Search Here</a>
     </div>
   </body>
 </html>

@@ -2,7 +2,6 @@ var express = require('express');
 var bodyParser = require('body-parser');
 const crypto = require('crypto');
 const secret = 'xebia';
-const hmac = crypto.createHmac('sha256', secret)
 var db = require('./db');
 var uuidv4 = require('uuid/v4');
 var app = express();
@@ -34,6 +33,7 @@ app.get('/searchBooks', function(req, res) {
 app.post('/login', function(req, res) {
   const username = req.body.username;
   const password = req.body.password;
+  const hmac = crypto.createHmac('sha256', secret);
   var query = {
     username: username,
     password: hmac.update(password).digest('hex')
@@ -50,7 +50,7 @@ app.post('/login', function(req, res) {
       
       // Caching the tokens
       // Not implemented any expiry or anything
-      tokens.append({
+      tokens.push({
         username: doc.username,
         token: token,
         role: doc.role
@@ -62,6 +62,48 @@ app.post('/login', function(req, res) {
       })
     });
   })
+});
+
+app.post('/signup', function(req, res) {
+  const username = req.body.username;
+  const password = req.body.password;
+  const full_name = req.body.full_name;
+  const role = req.body.role;
+  const hmac = crypto.createHmac('sha256', secret);
+  if (username && password && full_name && role) {
+    var obj= {
+      username: username,
+      password: hmac.update(password).digest('hex'),
+      full_name: full_name,
+      role: role
+    };
+    db.conn(function(err, dbIns) {
+      if (err) {
+        console.log('err', err);
+        return res.send({'success': false});
+      }
+      const UsersCol = dbIns.collection('Users');
+      UsersCol.find(obj).toArray(function(err, result) {
+        if (err) {
+          console.log('err', err);
+          return res.send({'success': false});
+        }
+        if (result.length > 0) {
+          return res.send({'success': false, 'user_exists': true});
+        } else {
+          UsersCol.insertOne(obj, function(err, r) {
+            if (err || r.insertedCount !== 1) {
+              console.log('err', err);
+              return res.send({'success': false});
+            }
+            return res.send({'success': true});
+          });
+        }
+      });      
+    });
+  } else {
+    res.send({'success': false});
+  }
 });
 
 app.use(express.static('client'));
