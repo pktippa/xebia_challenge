@@ -2,10 +2,28 @@
 
 ## Getting Started
 
+For installing dependencies
+
 ```sh
 $ npm install
+```
+
+For Uploading seed data
+
+```
 $ node seed.js
+```
+
+For starting application server
+
+```
 $ node .
+```
+
+For running test cases
+
+```
+$ npm test
 ```
 
 ## Back-end Assignment (Javascript)

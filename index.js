@@ -16,7 +16,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
+// For Searching the Books
 app.get('/searchBooks', function(req, res) {
+  // Building query
   var query = req.query;
   if (query.author || query.genre || query.book_title){ 
     db.conn(function(err, dbIns) {
@@ -67,6 +69,7 @@ app.post('/login', function(req, res) {
   })
 });
 
+// Signup API
 app.post('/signup', function(req, res) {
   const username = req.body.username;
   const password = req.body.password;
@@ -110,41 +113,52 @@ app.post('/signup', function(req, res) {
 });
 
 function getRandomNum() {
+  // Generating random number used to store with image name
   return Math.floor(Math.random() * (100000 - 10000 + 1)) + 100000;
 }
+
+// For adding a new book
 app.post('/addBook', upload.single('cover'), function(req, res) {
-  for (name in req.body){
-    console.log('name', name, 'val', req.body[name]);
-  }
   if(req.headers['token']) {
     const token = req.headers['token'];
+    // Verifying token
     var inToken = tokens.find(function(el) {
       return el.token == token;
     });
+    // Validating token and Editor role
     if(inToken && inToken.role == 'Editor') {
-      fs.readFile('uploads/' + req.file.filename, function(err, res){
-        if(err) {console.log(err); return res.send({'success': false});}
-        const fileName = getRandomNum() + req.body.cover;
-        fs.writeFile('client/img/' + fileName, function(err, reslt) {
-          if (err) {console.log('err file write', err); return res.send({'success': false})}
-          var obj = req.body;
-          obj.cover = fileName;
-          db.conn(function(err, dbIns) {
-            if (err) {
+      var obj = req.body;
+      var doDBTransaction = function (obj, res) {
+        db.conn(function(err, dbIns) {
+          if (err) {
+            console.log('err', err);
+            return res.send({'success': false});
+          }
+          const BookInfoCol = dbIns.collection('BookInfo');
+          // Adding new Book to Database
+          BookInfoCol.insertOne(obj, function(err, r) {
+            if (err || r.insertedCount !== 1) {
               console.log('err', err);
               return res.send({'success': false});
             }
-            const BookInfoCol = dbIns.collection('BookInfo');
-            BookInfoCol.insertOne(obj, function(err, r) {
-              if (err || r.insertedCount !== 1) {
-                console.log('err', err);
-                return res.send({'success': false});
-              }
-              return res.send({'success': true});
-            })
+            return res.send({'success': true});
+          })
+        });
+      };
+      if(req.file && req.file.filename) {
+        // Handling the image file uploaded
+        fs.readFile('uploads/' + req.file.filename, function(err, data){
+          if(err) {console.log(err); return res.send({'success': false});}
+          const fileName = getRandomNum() + req.body.cover;
+          fs.writeFile('client/img/' + fileName, data, function(err, reslt) {
+            if (err) {console.log('err file write', err); return res.send({'success': false})}
+            obj.cover = fileName;
+            doDBTransaction(obj, res)
           });
         });
-      });
+      } else {
+        doDBTransaction(obj, res)
+      }      
     } else {
       res.send({'unauthorized': true});
     }
@@ -159,3 +173,5 @@ app.listen(3000);
 if (require.main === module) {
   console.log('Application is listening on 3000 port, access http://localhost:3000/')
 }
+
+module.exports = app;

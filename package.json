@@ -2,12 +2,20 @@
   "name": "xebia_challenge",
   "version": "1.0.0",
   "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/_mocha --timeout 10000"
+  },
   "dependencies": {
     "express": "4.16.3",
     "body-parser": "1.18.3",
     "mongodb": "3.0.7",
     "multer": "1.3.0",
     "uuid": "3.2.1"
+  },
+  "devDependencies": {
+    "mocha": "5.1.1",
+    "chai": "4.1.2",
+    "chai-http": "4.0.0"
   },
   "author": "Pradeep Kumar Tippa"
 }
