@@ -1,0 +1,11 @@
+{
+  "name": "xebia_challenge",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "express": "4.16.3",
+    "body-parser": "1.18.3",
+    "mongodb": "3.0.7"
+  },
+  "author": "Pradeep Kumar Tippa"
+}
