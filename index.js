@@ -6,6 +6,9 @@ var db = require('./db');
 var uuidv4 = require('uuid/v4');
 var app = express();
 var tokens = [];
+var multer  = require('multer')
+var upload = multer({ dest: 'uploads/' })
+var fs = require('fs');
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -103,6 +106,50 @@ app.post('/signup', function(req, res) {
     });
   } else {
     res.send({'success': false});
+  }
+});
+
+function getRandomNum() {
+  return Math.floor(Math.random() * (100000 - 10000 + 1)) + 100000;
+}
+app.post('/addBook', upload.single('cover'), function(req, res) {
+  for (name in req.body){
+    console.log('name', name, 'val', req.body[name]);
+  }
+  if(req.headers['token']) {
+    const token = req.headers['token'];
+    var inToken = tokens.find(function(el) {
+      return el.token == token;
+    });
+    if(inToken && inToken.role == 'Editor') {
+      fs.readFile('uploads/' + req.file.filename, function(err, res){
+        if(err) {console.log(err); return res.send({'success': false});}
+        const fileName = getRandomNum() + req.body.cover;
+        fs.writeFile('client/img/' + fileName, function(err, reslt) {
+          if (err) {console.log('err file write', err); return res.send({'success': false})}
+          var obj = req.body;
+          obj.cover = fileName;
+          db.conn(function(err, dbIns) {
+            if (err) {
+              console.log('err', err);
+              return res.send({'success': false});
+            }
+            const BookInfoCol = dbIns.collection('BookInfo');
+            BookInfoCol.insertOne(obj, function(err, r) {
+              if (err || r.insertedCount !== 1) {
+                console.log('err', err);
+                return res.send({'success': false});
+              }
+              return res.send({'success': true});
+            })
+          });
+        });
+      });
+    } else {
+      res.send({'unauthorized': true});
+    }
+  } else {
+    res.send({'unauthorized': true});
   }
 });
 

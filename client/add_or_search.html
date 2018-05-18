@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="./js/add_or_search.js"></script>
+    <script type="text/javascript" src="./js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() { 
+        $( "#addbooks" ).submit(function(event) {
+          event.preventDefault();
+          console.log('submit clicked');
+          var formData = new FormData(this);
+          if(this[3].value) {
+            formData.append('cover', this[3].value.split('\\')[2])
+            formData.append('isCoverAvailable', true)
+          } else {
+            formData.append('isCoverAvailable', false)
+          }
+          if(this[0].value){
+            formData.append('author', this[0].value)
+          }
+          if(this[1].value){
+            formData.append('genre', this[1].value)
+          }
+          if(this[2].value){
+            formData.append('book_title', this[2].value)
+          }
+          $.ajax({
+            url: 'http://localhost:3000/addBook',
+            type: 'POST',
+            beforeSend: function(req) {
+              req.setRequestHeader('token', sessionStorage.token)
+            },
+            data: formData,
+            success: function (data) {
+              if(data.unauthorized) {
+                alert('Unauthorized, please login with proper role')
+              } else if (!data.success) {
+                alert('Request failed to perform');
+              } else {
+                alert('Book added successfully');
+              }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+          });
+        })
+      });
+    </script>
+  </head>
+  <title>Search Books</title>
+  <body>
+    <div id="search_login_div" hidden="true">
+      <a id="search_login_a" href="./login_signup.html">Login/Signup</a>
+    </div>
+    <h3>Search Books</h3>
+    <form id="search_books_form">
+      Author: <input id="author" type="text">
+      Genre: <input id="genre" type="text">
+      Book Title: <input id="book_title" type="text">
+      <input id="submit_search" value="Submit" type="button" onclick="submitSearch()"/>
+    </form>
+    <div>
+      <table id="search_result" border="true">
+        <tr>
+          <th>Author</th>
+          <th>Genre</th>
+          <th>Title</th>
+          <th>Cover</th>
+        </tr>
+      </table>
+    </div>
+    <br>
+    <br>
+    <div id="add_books_div">
+      <h3>Add New Book</h3>
+      <form id="addbooks" method="post" enctype="multipart/form-data">
+          Author: <input id="adb_author" type="text">
+          Genre: <input id="adb_genre" type="text">
+          Book Title: <input id="adb_book_title" type="text">
+          Cover Image: <input type="file" name="cover" id="adb_cover_image" accept="image/*">
+          <button id="submit_book">Submit</button>
+      </form>
+    </div>
+  </body>
+</html>

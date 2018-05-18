@@ -58,6 +58,8 @@ function submitSearch(){
               }
               table.appendChild(tr);
             }
+          } else {
+            alert('No results found');
           }
         }
         console.log('status ', http.status);
@@ -65,3 +67,58 @@ function submitSearch(){
     };
     http.send();
   }
+
+function submitBook() {
+  var author = document.getElementById('adb_author').value;
+  var genre = document.getElementById('adb_genre').value;
+  var book_title = document.getElementById('adb_book_title').value;
+  var cover_image = document.getElementById('adb_cover_image');
+  console.log('cover', cover_image, cover_image.files, cover_image.files[0]);
+  var obj = {
+    author: author,
+    genre: genre,
+    book_title: book_title
+  }
+  if (cover_image.value && cover_image.files && cover_image.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      obj['isCoverAvailable'] = true;
+      obj['cover'] = event.target.result;
+      httpReqBookSubmit(obj);
+    }
+    reader.readAsDataURL(cover_image.files[0]);
+  } else {
+    obj['isCoverAvailable'] = false;
+    httpReqBookSubmit(obj);
+  }
+}
+
+function httpReqBookSubmit(data) {
+  // URL want to hit
+  var url = 'http://localhost:3000/addBook'
+  // Opening up new XMLHttpRequest
+  var http = new XMLHttpRequest()
+  var FD  = new FormData();
+  for (name in data) {
+    FD.append(name, data[name])
+  }
+  // Making a POST request
+  http.open('POST',url, true)
+  // Setting up Request headers
+  //http.setRequestHeader("Content-type","application/json")
+  http.setRequestHeader("Content-type","multipart/form-data")
+  //http.setRequestHeader("Content-type","application/x-www-form-urlencoded")
+  http.setRequestHeader("token",sessionStorage.token);
+  // Sending the POST data
+  http.send(FD)
+  //http.send(data)
+  // On ready state
+  http.onreadystatechange = function() {//Call a function when the state changes.
+    // Checking the readystate is when the HEADERS are recieved
+    if(http.readyState == 4) {
+      if(http.status == 200) {
+        
+      }
+    }
+  };
+}
