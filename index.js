@@ -145,17 +145,39 @@ app.post('/addBook', upload.single('cover'), function(req, res) {
           })
         });
       };
+      
       if(req.file && req.file.filename) {
         // Handling the image file uploaded
+        var src_path = 'uploads/' + req.file.filename;
+        const fileName = getRandomNum() + req.body.cover;
+        var des_path = 'client/img/' + fileName;
+
+        // Creating Source to destination pipe
+        var src = fs.createReadStream(src_path);
+        var dest = fs.createWriteStream(des_path);
+        src.pipe(dest);
+        // Listening on events
+        src.on('end', function() {
+          obj.cover = fileName;
+          doDBTransaction(obj, res);          
+        });
+        // On Error event
+        src.on('error', function(err) {
+          console.log('err file write', err);
+          return res.send({'success': false})
+        });
+        // Other way of reading whole and writing it
+        /*
         fs.readFile('uploads/' + req.file.filename, function(err, data){
           if(err) {console.log(err); return res.send({'success': false});}
           const fileName = getRandomNum() + req.body.cover;
+          // Wirting the uploaded image to client images folder
           fs.writeFile('client/img/' + fileName, data, function(err, reslt) {
             if (err) {console.log('err file write', err); return res.send({'success': false})}
             obj.cover = fileName;
             doDBTransaction(obj, res)
           });
-        });
+        });*/
       } else {
         doDBTransaction(obj, res)
       }      
@@ -167,11 +189,16 @@ app.post('/addBook', upload.single('cover'), function(req, res) {
   }
 });
 
+// For serving images, html, javascript files
 app.use(express.static('client'));
 
+// Listening on Port
 app.listen(3000);
+
+// For logging application runnint from > node .
 if (require.main === module) {
   console.log('Application is listening on 3000 port, access http://localhost:3000/')
 }
 
+// For test
 module.exports = app;

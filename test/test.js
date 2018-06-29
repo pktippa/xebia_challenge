@@ -4,6 +4,7 @@ let chaiHttp = require('chai-http');
 let assert = require('assert');
 let should = chai.should();
 
+let fs = require('fs');
 chai.use(chaiHttp);
 
 describe('Testing Books Info', function(){
@@ -83,6 +84,24 @@ describe('Testing Books Info', function(){
       })
   })
 
+  xit('New Book Editor with image', function(done) {
+    // Able to test with Browser working fine
+    // some issue with multer and chai-http
+    chai.request(app)
+      .post('/addBook')
+      .set('token', token)
+      .attach("file", fs.readFileSync('test/harry_porter.png'), 'harry_porter.png')
+      .field('author', 'Rowling')
+      .field('genre', 'thriller')
+      .field('book_title', 'Harry Porter 2')
+      .field('isCoverAvailable', true)
+      .end(function(err, res) {
+        res.body.should.have.property('success');
+        res.body.should.have.property('success').eql(true);
+        done();
+      })
+  })
+
   it('Search Book', function(done) {
     let queryUrl = '/searchBooks?author=Rowling';
 
@@ -111,7 +130,7 @@ describe('Testing Books Info', function(){
       })
   })
 
-  xit('SignUp Reader', function(done) {
+  it('SignUp Reader', function(done) {
     let user = {
       full_name: 'Kumar',
       username: 'kumar',
